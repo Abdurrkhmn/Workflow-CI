@@ -1,0 +1,54 @@
+name: ML Model Retraining CI
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'MLProject/**'
+  workflow_dispatch:
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: '3.9'
+    
+    - name: Install MLflow
+      shell: bash -l {0}
+      run: |
+        pip install mlflow scikit-learn pandas numpy
+    
+    - name: Debug - List files
+      shell: bash -l {0}
+      run: |
+        echo "=== Current directory ==="
+        pwd
+        ls -la
+        echo "=== MLProject directory ==="
+        ls -la MLProject/
+        echo "=== Dataset directory ==="
+        ls -la MLProject/credit_risk_dataset_preprocessed/
+    
+    - name: Run MLflow Project
+      shell: bash -l {0}
+      run: |
+        cd MLProject
+        python modelling.py --n_estimators 100 --max_depth 10 --random_state 42
+    
+    - name: Upload MLflow artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: mlflow-model-artifacts
+        path: |
+          MLProject/mlruns/
+          MLProject/run_id.txt
+        retention-days: 30
