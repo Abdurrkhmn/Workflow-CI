@@ -1,14 +1,20 @@
-name: ML Workflow CI
+name: ML Workflow CI with Docker
 
 on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  DOCKER_IMAGE_NAME: credit-risk-model
+
 jobs:
-  run-mlflow-project:
+  # Job 1: Train model dan simpan artifacts
+  train-model:
     runs-on: ubuntu-latest
-    
+    outputs:
+      model_path: ${{ steps.find_model.outputs.model_path }}
+      
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,14 +26,71 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install mlflow scikit-learn pandas numpy matplotlib seaborn dagshub
+          pip install mlflow scikit-learn pandas numpy matplotlib seaborn
 
       - name: Run MLflow Project
         run: mlflow run MLProject --env-manager=local
 
-      - name: Upload MLflow artifacts
+      - name: Find model path
+        id: find_model
+        run: |
+          MODEL_PATH=$(find MLProject/mlruns -name "model" -type d | head -1)
+          echo "model_path=$MODEL_PATH" >> $GITHUB_OUTPUT
+          echo "Model found at: $MODEL_PATH"
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: mlflow-artifacts
           path: MLProject/mlruns/
           retention-days: 7
+
+  # Job 2: Build dan push Docker Image ke Docker Hub (ADVANCE)
+  build-docker:
+    runs-on: ubuntu-latest
+    needs: train-model
+    if: success()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: mlflow-artifacts
+          path: MLProject/mlruns/
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install MLflow
+        run: pip install mlflow
+
+      - name: Find best model path
+        id: find_model
+        run: |
+          MODEL_PATH=$(find MLProject/mlruns -name "model" -type d | head -1)
+          echo "model_path=$MODEL_PATH" >> $GITHUB_OUTPUT
+          echo "Best model at: $MODEL_PATH"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and Push Docker Image
+        env:
+          MODEL_PATH: ${{ steps.find_model.outputs.model_path }}
+          DOCKER_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/credit-risk-model
+        run: |
+          # Build Docker image from MLflow model
+          mlflow models build-docker -m "$MODEL_PATH" -n "$DOCKER_IMAGE" --enable-mlserver
+          
+          # Push to Docker Hub
+          docker push "$DOCKER_IMAGE"
+          
+          echo "✅ Docker image pushed: $DOCKER_IMAGE"
