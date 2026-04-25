@@ -1,0 +1,23 @@
+artifact_path: file:D:/DICODINGMicrosoftElevateTrain/SMSML_Abdurrahman/Workflow-CI/MLProject/mlruns/0/models/m-15ffe5d50bca403b9f58eef233822256/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.14.3
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+mlflow_version: 3.11.1
+model_id: m-15ffe5d50bca403b9f58eef233822256
+model_size_bytes: 242746
+model_uuid: m-15ffe5d50bca403b9f58eef233822256
+prompts: null
+run_id: df946169c333472a9b9af65bde81553d
+utc_time_created: '2026-04-25 13:05:29.234224'
