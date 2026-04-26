@@ -11,14 +11,18 @@ warnings.filterwarnings('ignore')
 
 def main():
     
-      # ===== TAMBAHKAN KODE INI UNTUK FIX ERROR =====
+    # ===== TAMBAHKAN KODE INI UNTUK FIX ERROR =====
+    import os
     if not os.path.exists("mlruns"):
         os.makedirs("mlruns")
     if not os.path.exists("mlruns/0"):
         os.makedirs("mlruns/0")
     if not os.path.exists("mlruns/0/meta.yaml"):
         with open("mlruns/0/meta.yaml", "w") as f:
-            f.write("{}")
+            f.write('experiment_id: 0\n')
+            f.write('name: Default\n')
+            f.write('artifact_location: ./mlruns/0\n')
+            f.write('lifecycle_stage: active\n')
     # ===== SAMPAI SINI =====
     
     parser = argparse.ArgumentParser()
