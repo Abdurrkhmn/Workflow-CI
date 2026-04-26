@@ -10,6 +10,17 @@ import warnings
 warnings.filterwarnings('ignore')
 
 def main():
+    
+      # ===== TAMBAHKAN KODE INI UNTUK FIX ERROR =====
+    if not os.path.exists("mlruns"):
+        os.makedirs("mlruns")
+    if not os.path.exists("mlruns/0"):
+        os.makedirs("mlruns/0")
+    if not os.path.exists("mlruns/0/meta.yaml"):
+        with open("mlruns/0/meta.yaml", "w") as f:
+            f.write("{}")
+    # ===== SAMPAI SINI =====
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_estimators", type=int, default=100)
     parser.add_argument("--max_depth", type=int, default=10)
