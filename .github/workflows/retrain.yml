@@ -36,12 +36,11 @@ jobs:
         ls -la MLProject/
         echo "=== Dataset directory ==="
         ls -la MLProject/credit_risk_dataset_preprocessed/
-    
+
     - name: Run MLflow Project
-      shell: bash -l {0}
+      shell: bash -l {}
       run: |
-        cd MLProject
-        python modelling.py --n_estimators 100 --max_depth 10 --random_state 42
+       mlflow run MLProject -P n_estimators=100 -P max_depth=10 -P random_state=42
     
     - name: Upload MLflow artifacts
       if: always()
